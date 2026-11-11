@@ -1,8 +1,16 @@
 import argparse
+import os
 import sys
 
 from .report import catalogue_markdown, summary_markdown
 from .schema import load_claims, validate_log
+
+
+def _ensure_parent(path):
+    """Create the output directory if it does not exist yet."""
+    parent = os.path.dirname(os.path.abspath(path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
 
 
 def main(argv=None) -> int:
@@ -21,9 +29,9 @@ def main(argv=None) -> int:
         return 1
     print(f"OK: {len(claims)} claims valid")
     if args.log:
-        open(args.log, "w", encoding="utf-8").write(catalogue_markdown(claims))
+        _ensure_parent(args.log) or open(args.log, "w", encoding="utf-8").write(catalogue_markdown(claims))
     if args.summary:
-        open(args.summary, "w", encoding="utf-8").write(summary_markdown(claims))
+        _ensure_parent(args.summary) or open(args.summary, "w", encoding="utf-8").write(summary_markdown(claims))
     return 0
 
 

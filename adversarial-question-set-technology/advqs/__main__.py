@@ -1,8 +1,16 @@
 import argparse
+import os
 import sys
 
 from .catalog import catalog_markdown, stats_markdown
 from .schema import load_questions, validate_dataset
+
+
+def _ensure_parent(path):
+    """Create the output directory if it does not exist yet."""
+    parent = os.path.dirname(os.path.abspath(path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
 
 
 def main(argv=None) -> int:
@@ -22,10 +30,10 @@ def main(argv=None) -> int:
         return 1
     print(f"OK: {len(questions)} questions valid")
     if args.catalog:
-        open(args.catalog, "w", encoding="utf-8").write(catalog_markdown(questions))
+        _ensure_parent(args.catalog) or open(args.catalog, "w", encoding="utf-8").write(catalog_markdown(questions))
         print(f"catalogue written to {args.catalog}")
     if args.stats:
-        open(args.stats, "w", encoding="utf-8").write(stats_markdown(questions))
+        _ensure_parent(args.stats) or open(args.stats, "w", encoding="utf-8").write(stats_markdown(questions))
         print(f"summary written to {args.stats}")
     return 0
 
