@@ -1,0 +1,24 @@
+{
+  "name": "Arabic technology response rubric",
+  "scale": {"min": 1, "max": 5},
+  "criteria": [
+    {"id": "technical_accuracy", "weight": 0.35, "description": "Facts, definitions and numbers are correct; no invented sources."},
+    {"id": "terminology", "weight": 0.20, "description": "Standard Arabic technical terms are used instead of unnecessary transliteration or wrong terms."},
+    {"id": "language_quality", "weight": 0.20, "description": "Grammar, spelling, fluency and the requested register (Modern Standard Arabic unless told otherwise)."},
+    {"id": "instruction_following", "weight": 0.15, "description": "Follows the request: language, count, length and format."},
+    {"id": "formatting", "weight": 0.10, "description": "Arabic punctuation, consistent numerals, correct handling of mixed Arabic/Latin text."}
+  ],
+  "gates": [
+    {"if": "technical_accuracy <= 2", "cap": 40, "reason": "A wrong core fact cannot be offset by good language."},
+    {"if": "instruction_following <= 2", "cap": 60, "reason": "Ignoring an explicit instruction caps the score."},
+    {"if": "language_quality <= 2", "cap": 60, "reason": "Serious language problems cap the score."},
+    {"if": "fabricated_source", "cap": 20, "reason": "An invented source is the most damaging error."}
+  ],
+  "scale_guide": {
+    "1": "Unacceptable: wrong or invented content",
+    "2": "Poor: major problems",
+    "3": "Acceptable: usable with clear issues",
+    "4": "Good: minor issues only",
+    "5": "Excellent: accurate, natural and correctly formatted"
+  }
+}

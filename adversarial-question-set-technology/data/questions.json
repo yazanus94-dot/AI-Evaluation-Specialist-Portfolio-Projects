@@ -1,0 +1,747 @@
+[
+  {
+    "id": "AQ-001",
+    "topic": "web_protocols",
+    "difficulty": 2,
+    "trap_type": "subtle_distinction",
+    "question": "A REST API receives a request carrying a valid access token for user Sam, but Sam's role does not allow deleting invoices. A second request arrives with no token at all. Which HTTP status code should the server return for each request, and which of the two code names is misleading?",
+    "reference_answer": "Return 403 Forbidden for Sam (the server understood the request and the identity but refuses to authorize it). Return 401 Unauthorized for the request with no token, together with a WWW-Authenticate header. The misleading name is 401: despite 'Unauthorized', it means the request lacks valid authentication credentials.",
+    "key_points": [
+      "Sam's request gets 403 Forbidden",
+      "The tokenless request gets 401",
+      "401 means unauthenticated, not unauthorized",
+      "401 responses include a WWW-Authenticate header"
+    ],
+    "expected_model_failure": "Swaps the two codes or returns 401 for both, trusting the name 'Unauthorized'.",
+    "why_hard": "The code names conflict with their meanings, so a model must recall the specification rather than the label.",
+    "source": {
+      "title": "RFC 9110: HTTP Semantics",
+      "reference": "Sections 15.5.2 (401) and 15.5.4 (403)",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110"
+    },
+    "verification": {
+      "status": "primary_source_checked_online",
+      "method": "Section numbers / dates confirmed against the cited source",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-002",
+    "topic": "web_protocols",
+    "difficulty": 3,
+    "trap_type": "false_premise",
+    "question": "RFC 9110 defines status code 418 'I'm a teapot' as a standard HTTP response that servers may use to reject requests. In which section does it define the behavior of 418?",
+    "reference_answer": "The premise is false. RFC 9110 does not define behavior for 418: it lists 418 as '(Unused)' in section 15.5.19 and reserves it. The 'I'm a teapot' response comes from RFC 2324 (HTCPCP), an April Fools' RFC published on 1 April 1998.",
+    "key_points": [
+      "Rejects the premise",
+      "418 is marked (Unused) in RFC 9110 section 15.5.19",
+      "Origin is RFC 2324 (HTCPCP), an April Fools' RFC",
+      "Should not be used as a normal application error"
+    ],
+    "expected_model_failure": "Accepts the premise and invents a section describing 418 behavior.",
+    "why_hard": "The question presupposes something false and sounds plausible; a model has to know both the joke RFC and the current registry state.",
+    "source": {
+      "title": "RFC 9110: HTTP Semantics (and IANA HTTP Status Code Registry)",
+      "reference": "Section 15.5.19; RFC 2324",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110"
+    },
+    "verification": {
+      "status": "primary_source_checked_online",
+      "method": "Section numbers / dates confirmed against the cited source",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-003",
+    "topic": "security",
+    "difficulty": 2,
+    "trap_type": "outdated_fact",
+    "question": "A scanner flags a server that still accepts TLS 1.1. A colleague says this is fine because only TLS 1.0 was deprecated and TLS 1.1 is newer. Evaluate this claim and name the document that applies.",
+    "reference_answer": "The claim is wrong. RFC 8996 (March 2021), 'Deprecating TLS 1.0 and TLS 1.1', deprecates both versions (and DTLS 1.0): they must not be negotiated. Servers should require at least TLS 1.2, and TLS 1.3 (RFC 8446) is preferred.",
+    "key_points": [
+      "Claim is incorrect",
+      "RFC 8996 deprecates both TLS 1.0 and TLS 1.1",
+      "Published March 2021",
+      "Minimum should be TLS 1.2, ideally TLS 1.3"
+    ],
+    "expected_model_failure": "Says only TLS 1.0 is deprecated, or cites an older date or the wrong RFC.",
+    "why_hard": "Requires current standards status, and 'newer therefore safe' sounds reasonable.",
+    "source": {
+      "title": "RFC 8996: Deprecating TLS 1.0 and TLS 1.1",
+      "reference": "Abstract and Section 1",
+      "url": "https://www.rfc-editor.org/rfc/rfc8996"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-004",
+    "topic": "web_protocols",
+    "difficulty": 3,
+    "trap_type": "subtle_distinction",
+    "question": "A client sends DELETE /orders/42 twice. The first response is 204 No Content and the second is 404 Not Found. A teammate says this proves DELETE is not idempotent. Is the teammate correct? Also state whether PUT and POST are defined as idempotent methods.",
+    "reference_answer": "The teammate is incorrect. Idempotent means that the intended effect on the server of several identical requests is the same as for one request; the responses do not have to be identical. After the first DELETE the order is gone and the second changes nothing. PUT and DELETE are idempotent; POST is not defined as idempotent.",
+    "key_points": [
+      "Teammate is wrong",
+      "Idempotency concerns server state, not identical responses",
+      "PUT and DELETE are idempotent",
+      "POST is not defined as idempotent"
+    ],
+    "expected_model_failure": "Agrees with the teammate because the status codes differ, or says POST is idempotent.",
+    "why_hard": "Confuses 'same effect' with 'same response', a common reasoning slip.",
+    "source": {
+      "title": "RFC 9110: HTTP Semantics",
+      "reference": "Section 9.2.2 (Idempotent Methods)",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-005",
+    "topic": "security",
+    "difficulty": 3,
+    "trap_type": "misconception",
+    "question": "Assuming TLS 1.3 with no additional privacy extension, which of these can a network observer between you and the website see: the hostname you connect to, the URL path and query string, and the request headers? Answer each separately.",
+    "reference_answer": "The hostname is visible, because the Server Name Indication (SNI) in the ClientHello is sent in plaintext, and the destination IP address is also visible. The URL path, query string and request headers are encrypted. DNS lookups are also visible unless DNS over HTTPS/TLS is used. Encrypted Client Hello (ECH) can hide the SNI where supported.",
+    "key_points": [
+      "Hostname visible via SNI",
+      "Destination IP visible",
+      "Path, query and headers are encrypted",
+      "DNS queries leak unless encrypted"
+    ],
+    "expected_model_failure": "Says 'HTTPS hides everything except the IP' or claims the hostname is encrypted by TLS 1.3 alone.",
+    "why_hard": "A popular half-truth: models over-generalize the privacy of HTTPS.",
+    "source": {
+      "title": "RFC 6066: TLS Extensions (Server Name Indication); RFC 8446: TLS 1.3",
+      "reference": "RFC 6066 Section 3; RFC 8446 Section 4.1.2",
+      "url": "https://www.rfc-editor.org/rfc/rfc6066"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-006",
+    "topic": "security",
+    "difficulty": 3,
+    "trap_type": "misconception",
+    "question": "A developer writes: 'We configured CORS on our API, so scripts from other websites and tools like curl can no longer send requests to it.' What is wrong with this statement?",
+    "reference_answer": "CORS is enforced by browsers: it controls whether JavaScript from another origin may read a response. It does not stop curl, servers or other non-browser clients, and a browser may still send a cross-origin 'simple' request (the side effects happen) even when the page cannot read the answer. CORS is not authentication or authorization; use proper auth and CSRF protection.",
+    "key_points": [
+      "CORS is browser-enforced",
+      "Does not block curl or non-browser clients",
+      "Simple requests can still be sent and have effects",
+      "Not a substitute for authentication or CSRF protection"
+    ],
+    "expected_model_failure": "Treats CORS as a server-side access control or firewall.",
+    "why_hard": "The model must separate what is enforced by the browser from what the server enforces.",
+    "source": {
+      "title": "Fetch Standard: CORS protocol",
+      "reference": "Section 'HTTP extensions' / CORS protocol",
+      "url": "https://fetch.spec.whatwg.org/#http-cors-protocol"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-007",
+    "topic": "networking",
+    "difficulty": 3,
+    "trap_type": "numerical",
+    "question": "For the IPv4 address 192.168.10.100/26, give the network address, the broadcast address and the number of usable host addresses under the conventional rules for a normal subnet.",
+    "reference_answer": "Network 192.168.10.64, broadcast 192.168.10.127, 62 usable hosts (192.168.10.65 to 192.168.10.126). A /26 has 64 addresses in blocks of 64: .0, .64, .128, .192; .100 falls in the .64 block.",
+    "key_points": [
+      "Network address 192.168.10.64",
+      "Broadcast address 192.168.10.127",
+      "62 usable hosts",
+      "Block size is 64"
+    ],
+    "expected_model_failure": "Gives 192.168.10.0 as the network, or counts 64 or 63 usable hosts.",
+    "why_hard": "Needs block-size arithmetic, not memorized subnet masks.",
+    "source": {
+      "title": "RFC 4632: Classless Inter-domain Routing (CIDR)",
+      "reference": "Section 3 (address prefix notation)",
+      "url": "https://www.rfc-editor.org/rfc/rfc4632"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-008",
+    "topic": "networking",
+    "difficulty": 4,
+    "trap_type": "over_generalization",
+    "question": "A company wants example.com (the zone apex) to point to a hosting provider using a CNAME record, while keeping the existing MX and NS records at example.com. Will this work under the DNS specifications? Explain why and name the common workaround.",
+    "reference_answer": "It will not work. A CNAME record cannot coexist with other record types at the same owner name (RFC 1034 section 3.6.2; RFC 2181 section 10.1), and the apex must hold SOA and NS records (and here MX). The usual workaround is a provider feature such as ALIAS/ANAME or CNAME flattening, which answers with A/AAAA records, or publishing A/AAAA records directly. (DNSSEC records such as RRSIG and NSEC are the exception.)",
+    "key_points": [
+      "CNAME cannot coexist with other records at the same name",
+      "Apex always has SOA and NS",
+      "Workaround: ALIAS/ANAME/CNAME flattening or A/AAAA records"
+    ],
+    "expected_model_failure": "Says it works, or says CNAME at the apex is only 'discouraged'.",
+    "why_hard": "Real-world practice (flattening) hides a hard protocol rule; models blur the two.",
+    "source": {
+      "title": "RFC 1034: Domain Names - Concepts and Facilities; RFC 2181",
+      "reference": "RFC 1034 Section 3.6.2; RFC 2181 Section 10.1",
+      "url": "https://www.rfc-editor.org/rfc/rfc1034"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-009",
+    "topic": "security",
+    "difficulty": 4,
+    "trap_type": "misconception",
+    "question": "MD5 is considered cryptographically broken. Does that mean HMAC-MD5 is broken in the same way, and is MD5 acceptable for digital signatures?",
+    "reference_answer": "MD5 must not be used for digital signatures or anywhere collision resistance is required. HMAC-MD5 is not broken in the same way: RFC 6151 (March 2011) says the attacks on HMAC-MD5 do not seem to indicate a practical vulnerability when it is used as a message authentication code, and that it is not urgent to stop using it in existing protocols. However, new protocol designs should not employ HMAC-MD5; HMAC-SHA-256 is an alternative.",
+    "key_points": [
+      "MD5 unacceptable for digital signatures",
+      "No practical vulnerability known for HMAC-MD5 as a MAC (RFC 6151)",
+      "Not urgent to replace existing use, but new designs should not employ HMAC-MD5"
+    ],
+    "expected_model_failure": "Says HMAC-MD5 is equally broken, or that MD5 is fine because it is 'only broken for passwords'.",
+    "why_hard": "Requires separating collision resistance from MAC security.",
+    "source": {
+      "title": "RFC 6151: Updated Security Considerations for the MD5 Message-Digest and the HMAC-MD5 Algorithms",
+      "reference": "Sections 1-3 (March 2011)",
+      "url": "https://www.rfc-editor.org/rfc/rfc6151"
+    },
+    "verification": {
+      "status": "primary_source_checked_online",
+      "method": "Section numbers / dates confirmed against the cited source",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-010",
+    "topic": "security",
+    "difficulty": 2,
+    "trap_type": "misconception",
+    "question": "A startup stores user passwords encrypted with AES-256, keeping the key in the application server's configuration file, and argues this is stronger than hashing. Evaluate the design and state what should be used instead.",
+    "reference_answer": "It is a poor design: encryption is reversible, and a server compromise also exposes the key, so all passwords can be recovered. Passwords should be stored with a slow, salted password hashing function such as Argon2id (preferred), scrypt, bcrypt or PBKDF2 with a high work factor, using a unique salt per password.",
+    "key_points": [
+      "Encryption is reversible and the key sits on the same server",
+      "Use a password hashing function (Argon2id, scrypt, bcrypt, PBKDF2)",
+      "Unique salt per password",
+      "Work factor makes brute force expensive"
+    ],
+    "expected_model_failure": "Praises AES-256 as 'military grade' and approves the design.",
+    "why_hard": "'Stronger algorithm' sounds persuasive but misses the threat model.",
+    "source": {
+      "title": "OWASP Password Storage Cheat Sheet",
+      "reference": "Algorithm choice and salting sections",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-011",
+    "topic": "databases",
+    "difficulty": 3,
+    "trap_type": "edge_case",
+    "question": "A table users has 10 rows and 3 of them have email = NULL. What do these queries return? (1) SELECT COUNT(*) FROM users WHERE email = NULL; (2) SELECT COUNT(email) FROM users; (3) SELECT COUNT(*) FROM users WHERE email <> 'a@x.com'; assume no row has that exact email.",
+    "reference_answer": "(1) 0, because comparing with NULL yields UNKNOWN, not true; use IS NULL, which would return 3. (2) 7, because COUNT(column) ignores NULLs. (3) 7, because NULL <> 'a@x.com' is UNKNOWN, so the 3 NULL rows are excluded.",
+    "key_points": [
+      "Query 1 returns 0 (use IS NULL for 3)",
+      "Query 2 returns 7",
+      "Query 3 returns 7, not 10",
+      "Three-valued logic: comparison with NULL is UNKNOWN"
+    ],
+    "expected_model_failure": "Answers 3 for query 1 and 10 for query 3.",
+    "why_hard": "Needs three-valued logic applied to three different queries.",
+    "source": {
+      "title": "PostgreSQL Documentation: Comparison Functions and Operators",
+      "reference": "NULL handling in comparisons",
+      "url": "https://www.postgresql.org/docs/current/functions-comparison.html"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-012",
+    "topic": "databases",
+    "difficulty": 4,
+    "trap_type": "misconception",
+    "question": "A blog states: 'The C in ACID and the C in the CAP theorem both mean consistency, so an ACID-compliant database is automatically CAP-consistent.' Evaluate this claim.",
+    "reference_answer": "The claim is wrong because the two terms mean different things. Consistency in ACID means a transaction takes the database from one valid state to another, preserving defined constraints and invariants. Consistency in CAP means linearizability (atomic consistency) across replicas. An ACID database on one node says nothing about linearizability across a replicated, partitioned system; CAP says that during a network partition a system must choose between consistency and availability.",
+    "key_points": [
+      "Different meanings of 'consistency'",
+      "ACID C = preserves invariants/constraints",
+      "CAP C = linearizability across replicas",
+      "CAP trade-off applies during partitions"
+    ],
+    "expected_model_failure": "Treats both as the same concept and agrees with the blog.",
+    "why_hard": "Same word, different formal definitions; a model must know both sources.",
+    "source": {
+      "title": "Gilbert and Lynch (2002), Brewer's conjecture and the feasibility of consistent, available, partition-tolerant web services; Haerder and Reuter (1983), Principles of transaction-oriented database recovery",
+      "reference": "CAP definition of atomic consistency; ACID paper",
+      "url": null
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-013",
+    "topic": "python",
+    "difficulty": 2,
+    "trap_type": "numerical",
+    "question": "In Python, what does print(0.1 + 0.2 == 0.3) output, why, and what is the recommended way to compare the two values?",
+    "reference_answer": "It prints False. 0.1 and 0.2 cannot be represented exactly in binary floating point, and the sum is 0.30000000000000004. Compare with a tolerance, for example math.isclose(0.1 + 0.2, 0.3), or use decimal.Decimal when exact decimal arithmetic is needed.",
+    "key_points": [
+      "Prints False",
+      "Binary floating point cannot represent 0.1 and 0.2 exactly",
+      "Sum is 0.30000000000000004",
+      "Use math.isclose or Decimal"
+    ],
+    "expected_model_failure": "Says it prints True, or blames a Python bug.",
+    "why_hard": "Easy to state, but models sometimes 'round' mentally.",
+    "source": {
+      "title": "Python Tutorial: Floating-Point Arithmetic: Issues and Limitations",
+      "reference": "Whole page",
+      "url": "https://docs.python.org/3/tutorial/floatingpoint.html"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-014",
+    "topic": "python",
+    "difficulty": 3,
+    "trap_type": "multi_step_reasoning",
+    "question": "What does this Python program print?\n\ndef add(x, items=[]):\n    items.append(x)\n    return items\n\na = add(1)\nb = add(2)\nc = add(3, [])\nprint(a, b, c, a is b)",
+    "reference_answer": "It prints: [1, 2] [1, 2] [3] True. The default list is created once, when the function is defined, so the first two calls share it and a and b are the same object. The third call passes a new list.",
+    "key_points": [
+      "Output is [1, 2] [1, 2] [3] True",
+      "Default argument evaluated once at definition time",
+      "a and b are the same list"
+    ],
+    "expected_model_failure": "Predicts [1] [2] [3] False.",
+    "why_hard": "Requires tracing object identity across three calls.",
+    "source": {
+      "title": "Python Tutorial: Default Argument Values",
+      "reference": "More on Defining Functions, important warning about mutable defaults",
+      "url": "https://docs.python.org/3/tutorial/controlflow.html#default-argument-values"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-015",
+    "topic": "python",
+    "difficulty": 2,
+    "trap_type": "subtle_distinction",
+    "question": "In Python, what is the value of True + True, does isinstance(True, int) return True, and what does sum([True, False, True]) return?",
+    "reference_answer": "True + True is 2, isinstance(True, int) is True, and sum([True, False, True]) is 2. bool is a subclass of int, with True equal to 1 and False equal to 0.",
+    "key_points": [
+      "True + True equals 2",
+      "isinstance(True, int) is True",
+      "sum([True, False, True]) equals 2",
+      "bool is a subclass of int"
+    ],
+    "expected_model_failure": "Says True + True is an error or True.",
+    "why_hard": "Tests knowledge of the type hierarchy rather than syntax.",
+    "source": {
+      "title": "Python Documentation: Built-in Functions, class bool",
+      "reference": "bool is a subclass of int",
+      "url": "https://docs.python.org/3/library/functions.html#bool"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-016",
+    "topic": "unicode_time",
+    "difficulty": 4,
+    "trap_type": "multi_step_reasoning",
+    "question": "In the ISO 8601 week-date system, which ISO year, week number and weekday number does 1 January 2021 fall in?",
+    "reference_answer": "ISO year 2020, week 53, weekday 5 (Friday). ISO week 1 is the week containing the first Thursday of the year; 1 January 2021 is a Friday, so it belongs to the last week of 2020, and 2020 has 53 ISO weeks.",
+    "key_points": [
+      "ISO year 2020",
+      "Week 53",
+      "Weekday 5 (Friday)",
+      "Week 1 contains the first Thursday"
+    ],
+    "expected_model_failure": "Answers 2021, week 1.",
+    "why_hard": "The calendar year and the ISO year differ, and the rule must be applied in several steps.",
+    "source": {
+      "title": "Python Documentation: datetime.date.isocalendar()",
+      "reference": "date.isocalendar()",
+      "url": "https://docs.python.org/3/library/datetime.html#datetime.date.isocalendar"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-017",
+    "topic": "unicode_time",
+    "difficulty": 4,
+    "trap_type": "subtle_distinction",
+    "question": "In Python 3, len('é') can be 1 or 2 depending on how the string was created. Explain how both can happen and give the UTF-8 byte length in each case.",
+    "reference_answer": "The character can be one code point, U+00E9 (precomposed), giving len 1 and 2 bytes in UTF-8, or two code points, 'e' followed by U+0301 (combining acute accent), giving len 2 and 3 bytes (1 + 2). The two strings look identical but compare unequal until normalized (NFC or NFD).",
+    "key_points": [
+      "Precomposed U+00E9: len 1, 2 UTF-8 bytes",
+      "Decomposed e + U+0301: len 2, 3 UTF-8 bytes",
+      "Strings look the same but are not equal",
+      "Normalization (NFC/NFD) resolves it"
+    ],
+    "expected_model_failure": "Says len is always 1 and 'é' is always 2 bytes.",
+    "why_hard": "Requires separating code points, bytes and visual characters.",
+    "source": {
+      "title": "Unicode Standard Annex #15: Unicode Normalization Forms; RFC 3629: UTF-8",
+      "reference": "UAX #15 introduction; RFC 3629 Section 3",
+      "url": "https://unicode.org/reports/tr15/"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-018",
+    "topic": "python",
+    "difficulty": 2,
+    "trap_type": "edge_case",
+    "question": "What is the time complexity of looking up a key in a Python dict in the average case and in the worst case, and what causes the worst case?",
+    "reference_answer": "Average case O(1) (amortized); worst case O(n), which happens when many keys collide in the hash table, for example keys with the same hash value.",
+    "key_points": [
+      "Average O(1)",
+      "Worst case O(n)",
+      "Cause is hash collisions"
+    ],
+    "expected_model_failure": "Says it is always O(1).",
+    "why_hard": "Models state the average case and forget the worst-case behavior.",
+    "source": {
+      "title": "Python Wiki: TimeComplexity",
+      "reference": "dict operations table",
+      "url": "https://wiki.python.org/moin/TimeComplexity"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-019",
+    "topic": "python",
+    "difficulty": 4,
+    "trap_type": "outdated_fact",
+    "question": "A blog post says: 'Python threads can never run Python code in parallel because of the GIL, and that will never change.' Evaluate this claim as of Python 3.14 and name the relevant PEPs.",
+    "reference_answer": "The claim is outdated. In the default CPython build the GIL still lets only one thread execute Python bytecode at a time, although I/O and C extensions that release the GIL can run concurrently. PEP 703 made the GIL optional through an experimental free-threaded build in Python 3.13, and PEP 779 (accepted June 2025) made the free-threaded build officially supported, but still optional, in Python 3.14. The default build still has the GIL, and making free-threading the default is a later decision.",
+    "key_points": [
+      "Default build still has the GIL",
+      "PEP 703 introduced the free-threaded build (experimental in 3.13)",
+      "PEP 779: officially supported but optional in 3.14",
+      "'Never change' is false"
+    ],
+    "expected_model_failure": "Repeats the old claim, or says the GIL was removed completely in 3.14.",
+    "why_hard": "Fast-moving fact: models often stop at 3.13 'experimental' or overshoot to 'GIL removed'.",
+    "source": {
+      "title": "PEP 779: Criteria for supported status for free-threaded Python",
+      "reference": "Phase II; Python 3.14 release notes",
+      "url": "https://peps.python.org/pep-0779/"
+    },
+    "verification": {
+      "status": "primary_source_checked_online",
+      "method": "Section numbers / dates confirmed against the cited source",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-020",
+    "topic": "javascript",
+    "difficulty": 2,
+    "trap_type": "subtle_distinction",
+    "question": "In JavaScript, what does typeof null return and does that mean null is an object? What does typeof NaN return and what does NaN === NaN evaluate to?",
+    "reference_answer": "typeof null returns 'object', a legacy quirk; null is actually a primitive value (the Null type). typeof NaN returns 'number', and NaN === NaN is false; use Number.isNaN() or Object.is() to test for NaN.",
+    "key_points": [
+      "typeof null is 'object' (legacy quirk)",
+      "null is a primitive",
+      "typeof NaN is 'number'",
+      "NaN === NaN is false"
+    ],
+    "expected_model_failure": "Says typeof null is 'null' or that NaN equals itself.",
+    "why_hard": "Four small facts must all be correct.",
+    "source": {
+      "title": "MDN Web Docs: typeof operator; ECMAScript specification",
+      "reference": "typeof operator table",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-021",
+    "topic": "java",
+    "difficulty": 3,
+    "trap_type": "edge_case",
+    "question": "In Java, what does int x = Integer.MAX_VALUE; x = x + 1; evaluate to, does it throw an exception, and how can overflow be detected?",
+    "reference_answer": "x becomes -2147483648. Java does not throw: integer overflow silently wraps around using two's complement arithmetic. Overflow can be detected with Math.addExact, which throws ArithmeticException, or by checking ranges before the operation.",
+    "key_points": [
+      "Result is -2147483648",
+      "No exception is thrown",
+      "Silent two's complement wraparound",
+      "Math.addExact throws ArithmeticException"
+    ],
+    "expected_model_failure": "Says it throws an overflow exception, or gives 2147483648.",
+    "why_hard": "Models import behavior from other languages.",
+    "source": {
+      "title": "The Java Language Specification, Section 4.2.2: Integer Operations",
+      "reference": "Section 4.2.2",
+      "url": "https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.2"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-022",
+    "topic": "unicode_time",
+    "difficulty": 3,
+    "trap_type": "numerical",
+    "question": "What UTC date and time does the Unix timestamp 2147483647 represent, and why is the next second a problem for systems that store time as a signed 32-bit integer?",
+    "reference_answer": "It is 2038-01-19 03:14:07 UTC. 2147483647 is 2^31 - 1, the maximum signed 32-bit value; the next second overflows and wraps to -2147483648, which represents 1901-12-13 20:45:52 UTC. This is the Year 2038 problem.",
+    "key_points": [
+      "2038-01-19 03:14:07 UTC",
+      "2^31 - 1 is the maximum signed 32-bit integer",
+      "Overflow wraps to a negative value (1901)",
+      "Year 2038 problem"
+    ],
+    "expected_model_failure": "Gives a wrong date or claims it affects all 64-bit systems.",
+    "why_hard": "Requires date arithmetic with the epoch.",
+    "source": {
+      "title": "POSIX.1-2017 Base Definitions, Section 4.16: Seconds Since the Epoch",
+      "reference": "Section 4.16",
+      "url": "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_16"
+    },
+    "verification": {
+      "status": "executed_locally",
+      "method": "Answer reproduced by running code (see tests/test_executable_facts.py)",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-023",
+    "topic": "software_testing",
+    "difficulty": 3,
+    "trap_type": "misconception",
+    "question": "A team reports 100% statement coverage and concludes that every decision outcome has been tested. Give a short code example showing the conclusion is wrong and name the stronger coverage criterion.",
+    "reference_answer": "Example: 'if x > 0: y = 1' with one test where x = 1 executes every statement (100% statement coverage) but never exercises the case where the condition is false. Branch (decision) coverage is stronger: 100% branch coverage guarantees 100% statement coverage, but not the other way around.",
+    "key_points": [
+      "Concrete example with an untested false branch",
+      "Statement coverage does not imply decision coverage",
+      "Branch coverage subsumes statement coverage"
+    ],
+    "expected_model_failure": "Agrees that 100% statement coverage means all outcomes are tested.",
+    "why_hard": "Tests understanding of coverage subsumption.",
+    "source": {
+      "title": "ISTQB Certified Tester Foundation Level Syllabus v4.0",
+      "reference": "Section 4.3 White-box test techniques",
+      "url": null
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-024",
+    "topic": "software_testing",
+    "difficulty": 3,
+    "trap_type": "numerical",
+    "question": "A form field accepts integer ages from 18 to 65 inclusive. List the test values for 2-value boundary value analysis and for 3-value boundary value analysis.",
+    "reference_answer": "2-value BVA: 17, 18, 65, 66. 3-value BVA: 17, 18, 19, 64, 65, 66 (each boundary together with its neighbors on both sides).",
+    "key_points": [
+      "2-value: 17, 18, 65, 66",
+      "3-value: 17, 18, 19, 64, 65, 66"
+    ],
+    "expected_model_failure": "Lists 18 and 65 only, or uses 0 and 100 as the boundaries.",
+    "why_hard": "Off-by-one precision under a clear technique definition.",
+    "source": {
+      "title": "ISTQB Certified Tester Foundation Level Syllabus v4.0",
+      "reference": "Section 4.2.2 Boundary value analysis",
+      "url": null
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-025",
+    "topic": "software_testing",
+    "difficulty": 2,
+    "trap_type": "subtle_distinction",
+    "question": "In ISTQB terminology, what is the difference between an error (mistake), a defect (fault, bug) and a failure? Give one example chain.",
+    "reference_answer": "An error (mistake) is a human action that produces an incorrect result; a defect is the flaw it leaves in a work product such as code or a requirement; a failure is the observable deviation when the defective code is executed under the right conditions. Not every defect causes a failure. Example: a developer misreads a requirement (error), writes '<' instead of '<=' (defect), and the system rejects a valid boundary input (failure).",
+    "key_points": [
+      "Error is a human mistake",
+      "Defect is the flaw in the work product",
+      "Failure is the observed deviation at run time",
+      "A defect does not always cause a failure"
+    ],
+    "expected_model_failure": "Treats the three terms as synonyms.",
+    "why_hard": "Terminology precision under an authoritative glossary.",
+    "source": {
+      "title": "ISTQB Certified Tester Foundation Level Syllabus v4.0",
+      "reference": "Section 1.2.3 Errors, defects, failures and root causes",
+      "url": null
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-026",
+    "topic": "tooling",
+    "difficulty": 3,
+    "trap_type": "subtle_distinction",
+    "question": "A bad commit has already been pushed to a shared main branch and other developers have pulled it. Which is safer: 'git reset --hard HEAD~1' followed by a force push, or 'git revert HEAD'? Explain why.",
+    "reference_answer": "git revert HEAD is safer: it adds a new commit that undoes the bad change, keeps history intact and does not disturb anyone who has already pulled. git reset --hard HEAD~1 plus a force push rewrites shared history, forces others to repair their local branches, and can discard work.",
+    "key_points": [
+      "git revert is the safe choice for shared branches",
+      "revert creates a new commit and preserves history",
+      "reset --hard plus force push rewrites shared history"
+    ],
+    "expected_model_failure": "Recommends reset because it 'cleanly removes' the commit.",
+    "why_hard": "Needs reasoning about a shared-history context, not command definitions only.",
+    "source": {
+      "title": "Git Documentation: git-revert and git-reset",
+      "reference": "git-revert; git-reset 'DISCUSSION' section",
+      "url": "https://git-scm.com/docs/git-revert"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-027",
+    "topic": "tech_history",
+    "difficulty": 3,
+    "trap_type": "edge_case",
+    "question": "On what date did the ARPANET switch from NCP to TCP/IP, and which RFC documented the transition plan?",
+    "reference_answer": "The cutover (the 'flag day') was on 1 January 1983, and the plan was documented in RFC 801, 'NCP/TCP Transition Plan' (November 1981).",
+    "key_points": [
+      "1 January 1983",
+      "RFC 801",
+      "NCP replaced by TCP/IP"
+    ],
+    "expected_model_failure": "Gives 1969, 1974 or 1989, or cites the wrong RFC.",
+    "why_hard": "Models blur ARPANET's founding, TCP's design and the 1983 switch.",
+    "source": {
+      "title": "RFC 801: NCP/TCP Transition Plan",
+      "reference": "Whole document",
+      "url": "https://www.rfc-editor.org/rfc/rfc801"
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  },
+  {
+    "id": "AQ-028",
+    "topic": "tech_history",
+    "difficulty": 3,
+    "trap_type": "misconception",
+    "question": "A student claims the World Wide Web became free for anyone to use when Tim Berners-Lee wrote his proposal in 1989. Which date and event actually put the Web software into the public domain, and which organization issued it?",
+    "reference_answer": "The student is wrong. CERN issued a statement on 30 April 1993 that put the Web software (the basic line-mode client, the basic server and the library of common code) into the public domain. The 1989 document was only a proposal, and the first servers and browsers ran at CERN by the end of 1990.",
+    "key_points": [
+      "Claim is wrong",
+      "30 April 1993",
+      "Issued by CERN",
+      "1989 was a proposal, not a release"
+    ],
+    "expected_model_failure": "Accepts 1989 or 1991 as the date, or credits the W3C.",
+    "why_hard": "Several nearby dates (1989, 1990, 1991, 1993) invite confusion.",
+    "source": {
+      "title": "CERN: Licensing the Web",
+      "reference": "Public releases of Web software",
+      "url": "https://home.cern/science/computing/the-birth-of-the-web/licensing-web/"
+    },
+    "verification": {
+      "status": "primary_source_checked_online",
+      "method": "Section numbers / dates confirmed against the cited source",
+      "date": "2026-10-22"
+    }
+  },
+  {
+    "id": "AQ-029",
+    "topic": "tech_history",
+    "difficulty": 3,
+    "trap_type": "false_premise",
+    "question": "Since the Unix kernel was written in C from its very first version in 1969, how did the C language come to be designed around Unix?",
+    "reference_answer": "The premise is false. Unix began in 1969 in assembly language on a PDP-7. C was developed by Dennis Ritchie in the early 1970s (derived from B), and the Unix kernel was rewritten in C around 1973. C was therefore created in part to make Unix portable and easier to maintain.",
+    "key_points": [
+      "Rejects the premise",
+      "Original Unix was in assembly",
+      "C was developed in the early 1970s by Dennis Ritchie",
+      "Kernel rewritten in C around 1973"
+    ],
+    "expected_model_failure": "Accepts the premise and explains 'Unix written in C in 1969'.",
+    "why_hard": "The question is built on a confident false chronology.",
+    "source": {
+      "title": "Dennis M. Ritchie, The Development of the C Language (1993)",
+      "reference": "Sections on Unix and the PDP-11",
+      "url": null
+    },
+    "verification": {
+      "status": "needs_manual_check",
+      "method": "Open the source and confirm the quoted section before publishing",
+      "date": null
+    }
+  }
+]
