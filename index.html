@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Evaluation Specialist Portfolio</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:900px;margin:0 auto;padding:2rem 1rem;color:#1f2937;background:#f9fafb}
+h1{color:#111827;border-bottom:3px solid #6366f1;padding-bottom:.5rem}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{margin-top:0;color:#4f46e5}
+p,li{line-height:1.65}
+a{color:#4f46e5;text-decoration:none}a:hover{text-decoration:underline}
+.badge{display:inline-block;background:#eef2ff;color:#4f46e5;padding:.15rem .6rem;border-radius:999px;font-size:.8rem;margin-right:.4rem}
+code{background:#f3f4f6;padding:.1rem .4rem;border-radius:4px}
+</style>
+</head>
+<body>
+<h1>AI Evaluation Specialist Portfolio</h1>
+<p><span class="badge">Python 3.11+</span><span class="badge">MIT</span><span class="badge">CI</span></p>
+<p>Three projects showing the core craft of an AI evaluation specialist: designing questions that expose model weaknesses, reviewing model output in a non-English language with a defensible rubric, and verifying confident claims against primary sources. Every artifact is machine-validated in CI.</p>
+<p><strong>Author:</strong> <a href="https://www.linkedin.com/in/yazan-aljabari-878202139/">Yazan Aljabari</a></p>
+<h2>Projects</h2>
+<div class="card"><h2><a href="adversarial-question-set-technology/">Adversarial Question Set</a></h2><p>29 expert-level questions across networking, security, databases, programming and Unicode/time, each with trap type, gradable key points, likely wrong answer, and authoritative source. Reference answers re-derived in Python.</p></div>
+<div class="card"><h2><a href="arabic-tech-evaluation-set/">Arabic Tech Evaluation Set</a></h2><p>30 evaluated Arabic/English responses with a weighted rubric with hard gates, an Arabic error taxonomy, terminology glossary, and corrected versions for every flawed response.</p></div>
+<div class="card"><h2><a href="source-verification-log/">Source Verification Log</a></h2><p>27 AI-style claims checked against primary sources: verdict, corrected statement, evidence summary, source links, rationale. 19 contradicted, 6 supported, 1 partial, 1 unverifiable.</p></div>
+<h2>Quick start</h2>
+<pre>pip install pytest
+cd adversarial-question-set-technology &amp;&amp; python -m pytest -q
+cd ../arabic-tech-evaluation-set &amp;&amp; python -m pytest -q
+cd ../source-verification-log &amp;&amp; python -m pytest -q</pre>
+<p>See the <a href="README.md">README</a> for full documentation, methodology, results, and limitations.</p>
+</body>
+</html>
